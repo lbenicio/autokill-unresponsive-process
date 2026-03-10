@@ -15,9 +15,10 @@ set -euo pipefail
 # ─────────────────────────────────────────────────────────────────────────────
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 readonly PRODUCT_NAME="autokill-unresponsive-process"
 readonly LAUNCHD_LABEL="com.autokill.unresponsive"
-readonly PLIST_TEMPLATE="${SCRIPT_DIR}/${LAUNCHD_LABEL}.plist"
+readonly PLIST_TEMPLATE="${PROJECT_DIR}/Plist/${LAUNCHD_LABEL}.plist"
 
 # Install locations
 readonly INSTALL_DIR="${HOME}/.local/bin"
@@ -39,11 +40,11 @@ else
     readonly RED='' GREEN='' YELLOW='' BLUE='' BOLD='' RESET=''
 fi
 
-info()    { echo -e "${BLUE}ℹ${RESET}  $*"; }
-success() { echo -e "${GREEN}✔${RESET}  $*"; }
-warn()    { echo -e "${YELLOW}⚠${RESET}  $*"; }
-error()   { echo -e "${RED}✖${RESET}  $*" >&2; }
-step()    { echo -e "\n${BOLD}→ $*${RESET}"; }
+info()    { printf "${BLUE}ℹ${RESET}  %s\n" "$*"; }
+success() { printf "${GREEN}✔${RESET}  %s\n" "$*"; }
+warn()    { printf "${YELLOW}⚠${RESET}  %s\n" "$*"; }
+error()   { printf "${RED}✖${RESET}  %s\n" "$*" >&2; }
+step()    { printf "\n${BOLD}→ %s${RESET}\n" "$*"; }
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Handle --uninstall flag
@@ -79,8 +80,8 @@ fi
 SWIFT_VERSION="$(swift --version 2>&1 | head -1)"
 info "Swift: ${SWIFT_VERSION}"
 
-if [[ ! -f "${SCRIPT_DIR}/Package.swift" ]]; then
-    error "Package.swift not found in ${SCRIPT_DIR}. Are you in the right directory?"
+if [[ ! -f "${PROJECT_DIR}/Package.swift" ]]; then
+    error "Package.swift not found in ${PROJECT_DIR}."
     exit 1
 fi
 
@@ -104,7 +105,7 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 step "Building (${BUILD_CONFIG} configuration)"
 
-cd "${SCRIPT_DIR}"
+cd "${PROJECT_DIR}"
 
 swift build -c "${BUILD_CONFIG}" 2>&1 | while IFS= read -r line; do
     echo "  ${line}"
@@ -117,7 +118,7 @@ if [[ ${BUILD_EXIT} -ne 0 ]]; then
 fi
 
 # Locate the built binary
-BUILD_DIR="${SCRIPT_DIR}/.build/${BUILD_CONFIG}"
+BUILD_DIR="${PROJECT_DIR}/.build/${BUILD_CONFIG}"
 BUILT_BINARY="${BUILD_DIR}/${PRODUCT_NAME}"
 
 if [[ ! -x "${BUILT_BINARY}" ]]; then
@@ -204,7 +205,7 @@ else
     warn "${INSTALL_DIR} is not in your PATH"
     info "Add the following to your shell profile (~/.zshrc, ~/.bashrc, etc.):"
     echo ""
-    echo "    export PATH=\"${INSTALL_DIR}:\$PATH\""
+    printf "    export PATH=\"%s:\$PATH\"\n" "${INSTALL_DIR}"
     echo ""
 fi
 
@@ -238,33 +239,32 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 # Done
 # ─────────────────────────────────────────────────────────────────────────────
-echo ""
-echo -e "${GREEN}${BOLD}Installation complete!${RESET}"
-echo ""
-echo "  Binary:    ${INSTALL_PATH}"
-echo "  Config:    ${CONFIG_FILE}"
-echo "  Plist:     ${LAUNCHD_PLIST_PATH}"
-echo "  Logs:      ${LOG_DIR}/"
-echo ""
-echo "Useful commands:"
-echo "  ${BOLD}View live logs:${RESET}"
-echo "    log stream --predicate 'subsystem == \"com.autokill.unresponsive\"' --level debug"
-echo ""
-echo "  ${BOLD}View log file:${RESET}"
-echo "    tail -f ${LOG_DIR}/autokill.log"
-echo ""
-echo "  ${BOLD}Test with a single scan:${RESET}"
-echo "    ${PRODUCT_NAME} --once --verbose"
-echo ""
-echo "  ${BOLD}Dry-run mode (no kills):${RESET}"
-echo "    ${PRODUCT_NAME} --dry-run --verbose"
-echo ""
-echo "  ${BOLD}Reload config (while running):${RESET}"
-echo "    kill -HUP \$(pgrep -x ${PRODUCT_NAME})"
-echo ""
-echo "  ${BOLD}Stop daemon:${RESET}"
-echo "    launchctl bootout gui/\$(id -u)/${LAUNCHD_LABEL}"
-echo ""
-echo "  ${BOLD}Uninstall:${RESET}"
-echo "    ./uninstall.sh"
-echo ""
+printf "\n${GREEN}${BOLD}Installation complete!${RESET}\n"
+printf "\n"
+printf "  Binary:    %s\n" "${INSTALL_PATH}"
+printf "  Config:    %s\n" "${CONFIG_FILE}"
+printf "  Plist:     %s\n" "${LAUNCHD_PLIST_PATH}"
+printf "  Logs:      %s/\n" "${LOG_DIR}"
+printf "\n"
+printf "Useful commands:\n"
+printf "  ${BOLD}View live logs:${RESET}\n"
+printf "    log stream --predicate 'subsystem == \"com.autokill.unresponsive\"' --level debug\n"
+printf "\n"
+printf "  ${BOLD}View log file:${RESET}\n"
+printf "    tail -f %s/autokill.log\n" "${LOG_DIR}"
+printf "\n"
+printf "  ${BOLD}Test with a single scan:${RESET}\n"
+printf "    %s --once --verbose\n" "${PRODUCT_NAME}"
+printf "\n"
+printf "  ${BOLD}Dry-run mode (no kills):${RESET}\n"
+printf "    %s --dry-run --verbose\n" "${PRODUCT_NAME}"
+printf "\n"
+printf "  ${BOLD}Reload config (while running):${RESET}\n"
+printf "    kill -HUP \$(pgrep -x %s)\n" "${PRODUCT_NAME}"
+printf "\n"
+printf "  ${BOLD}Stop daemon:${RESET}\n"
+printf "    launchctl bootout gui/\$(id -u)/%s\n" "${LAUNCHD_LABEL}"
+printf "\n"
+printf "  ${BOLD}Uninstall:${RESET}\n"
+printf "    make uninstall\n"
+printf "\n"

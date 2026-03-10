@@ -15,7 +15,7 @@ set -euo pipefail
 readonly PRODUCT_NAME="autokill-unresponsive-process"
 readonly LAUNCHD_LABEL="com.autokill.unresponsive"
 
-# Install locations (must match install.sh)
+# Install locations (must match install.sh / Makefile)
 readonly INSTALL_DIR="${HOME}/.local/bin"
 readonly INSTALL_PATH="${INSTALL_DIR}/${PRODUCT_NAME}"
 readonly LAUNCHD_PLIST_DIR="${HOME}/Library/LaunchAgents"
@@ -35,11 +35,11 @@ else
     readonly RED='' GREEN='' YELLOW='' BLUE='' BOLD='' RESET=''
 fi
 
-info()    { echo -e "${BLUE}ℹ${RESET}  $*"; }
-success() { echo -e "${GREEN}✔${RESET}  $*"; }
-warn()    { echo -e "${YELLOW}⚠${RESET}  $*"; }
-error()   { echo -e "${RED}✖${RESET}  $*" >&2; }
-step()    { echo -e "\n${BOLD}→ $*${RESET}"; }
+info()    { printf "${BLUE}ℹ${RESET}  %s\n" "$*"; }
+success() { printf "${GREEN}✔${RESET}  %s\n" "$*"; }
+warn()    { printf "${YELLOW}⚠${RESET}  %s\n" "$*"; }
+error()   { printf "${RED}✖${RESET}  %s\n" "$*" >&2; }
+step()    { printf "\n${BOLD}→ %s${RESET}\n" "$*"; }
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Parse flags
@@ -51,10 +51,10 @@ for arg in "$@"; do
             PURGE=true
             ;;
         --help|-h)
-            echo "Usage: $(basename "$0") [--purge]"
-            echo ""
-            echo "  --purge    Also remove configuration files and logs"
-            echo "  --help     Show this help message"
+            printf "Usage: %s [--purge]\n" "$(basename "$0")"
+            printf "\n"
+            printf "  --purge    Also remove configuration files and logs\n"
+            printf "  --help     Show this help message\n"
             exit 0
             ;;
         *)
@@ -65,7 +65,7 @@ for arg in "$@"; do
     esac
 done
 
-echo -e "${BOLD}Uninstalling ${PRODUCT_NAME}${RESET}"
+printf "${BOLD}Uninstalling %s${RESET}\n" "${PRODUCT_NAME}"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Stop the daemon
@@ -165,23 +165,22 @@ else
 
     info "Config directory preserved at ${CONFIG_DIR}"
     info "Log directory preserved at ${LOG_DIR}"
-    info "Run with ${BOLD}--purge${RESET} to remove these as well"
+    printf "  Run with ${BOLD}--purge${RESET} to remove these as well\n"
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Summary
 # ─────────────────────────────────────────────────────────────────────────────
-echo ""
-echo -e "${GREEN}${BOLD}Uninstallation complete!${RESET}"
-echo ""
+printf "\n${GREEN}${BOLD}Uninstallation complete!${RESET}\n"
+printf "\n"
 
 if [[ "${PURGE}" == false ]]; then
-    echo "The following were preserved (use --purge to remove):"
-    [[ -d "${CONFIG_DIR}" ]] && echo "  Config: ${CONFIG_DIR}"
-    [[ -d "${LOG_DIR}" ]]    && echo "  Logs:   ${LOG_DIR}"
-    echo ""
+    printf "The following were preserved (use --purge to remove):\n"
+    [[ -d "${CONFIG_DIR}" ]] && printf "  Config: %s\n" "${CONFIG_DIR}"
+    [[ -d "${LOG_DIR}" ]]    && printf "  Logs:   %s\n" "${LOG_DIR}"
+    printf "\n"
 fi
 
-echo "To reinstall, run:"
-echo "  ./install.sh"
-echo ""
+printf "To reinstall, run:\n"
+printf "  make install\n"
+printf "\n"
