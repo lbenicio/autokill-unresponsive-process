@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.autokill.unresponsive</string>
+
+    <key>Comment</key>
+    <string>Monitors for unresponsive GUI applications and kills them after a grace period</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>__INSTALL_PATH__/autokill-unresponsive-process</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+
+    <key>ThrottleInterval</key>
+    <integer>5</integer>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+
+    <key>LowPriorityBackgroundIO</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>__LOG_DIR__/autokill-launchd-stdout.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>__LOG_DIR__/autokill-launchd-stderr.log</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+
+    <key>Nice</key>
+    <integer>10</integer>
+</dict>
+</plist>
